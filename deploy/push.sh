@@ -2,4 +2,4 @@ git add -A
 git commit -m "Commit"
 git push origin main
 
-pause
+read -p "Press enter to continue"
