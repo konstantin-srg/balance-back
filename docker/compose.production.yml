@@ -1,0 +1,14 @@
+services:
+  nginx:
+    restart: always
+    volumes:
+      - ./nginx/vhosts.public.conf:/etc/nginx/conf.d/default.conf
+  php:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./php/Dockerfile.production
+  db:
+    restart: always
+  phpmyadmin:
+    restart: always

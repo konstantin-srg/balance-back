@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src/library/Pipe" isTestSource="false" packagePrefix="Pipe\" />
+      <sourceFolder url="file://$MODULE_DIR$/src/spec" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/composer" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/ezyang/htmlpurifier" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/filp/whoops" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/guzzlehttp/guzzle" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/guzzlehttp/promises" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/guzzlehttp/psr7" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laminas/laminas-db" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laminas/laminas-hydrator" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laminas/laminas-json" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laminas/laminas-math" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laminas/laminas-paginator" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laminas/laminas-serializer" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laminas/laminas-stdlib" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laminas/laminas-zendframework-bridge" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laravel/serializable-closure" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/maennchen/zipstream-php" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/markbaker/complex" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/markbaker/matrix" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/ne0h12/social-auther" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/phpoffice/phpspreadsheet" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/psr/http-client" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/psr/http-factory" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/psr/http-message" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/psr/log" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/psr/simple-cache" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/ralouphie/getallheaders" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/symfony/deprecation-contracts" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

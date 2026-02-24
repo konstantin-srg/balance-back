@@ -1,0 +1,35 @@
+.dumper {
+    font-family: "Noto Sans Mono", "Fira Mono", "Source Code Pro", Monaco, Consolas, "Lucida Console", monospace;
+}
+
+.dumper.window {
+    background: #2b2b2b;
+}
+
+.dumper .val {
+    color: #f7bd65;
+}
+
+/*.dumper span.std  { color: #f7bd65; }
+.dumper span.var  { color: #9674a6; }*/
+.dumper span.var  { color: #e0b863; }
+.dumper span.var.class  { color: #9674a6; }
+
+.dumper span.tru  { color: #4dc304; }
+.dumper span.fal  { color: #c35304; }
+.dumper span.str  { color: #a0bb5a; }
+.dumper span.dbl  { color: #4a85ba; }
+.dumper span.int  { color: #4a85ba; }
+.dumper span.str  { color: #a0bb5a; }
+.dumper span.sign { color: #cccccc; }
+.dumper .caller   { color: #747474; }
+.dumper .caller .time  { color: #457dff; }
+
+
+.dumper.console {
+    background: #2b2b2b;
+}
+
+.dumper .item {
+    border-color: #4b4c4d;
+}

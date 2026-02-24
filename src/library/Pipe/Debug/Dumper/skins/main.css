@@ -1,0 +1,104 @@
+.dumper.main {
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.dumper.window {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 13px;
+  overflow-y: scroll;
+}
+
+.dumper .item {
+  margin-bottom: 18px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #4b4c4d;
+}
+
+.dumper .item:last-child {
+  border-bottom: none;
+}
+
+.dumper .caller {
+  margin-bottom: 6px;
+}
+
+.dumper .row {
+
+}
+
+.dumper .row .row {
+  padding-left: 10px;
+}
+
+.dumper .key {
+}
+
+.dumper .key .bracket {
+  margin-left: 2px;
+}
+
+.dumper .key .colon {
+  margin-right: 2px;
+}
+
+.dumper .arr > .key {
+  cursor: pointer;
+}
+
+.dumper .obj > .val,
+.dumper .arr > .val {
+  /*max-height: 0;*/
+  overflow: hidden;
+  transition: height .5s;
+  transition: all ease 1s;
+}
+
+.dumper .obj.open > .val,
+.dumper .arr.open > .val {
+  max-height: none;
+}
+
+.dumper .key .arrow {
+  margin-left: 10px;
+  transition: all ease .2s;
+  display: inline-block;
+}
+
+.dumper .arr.open .arrow {
+  margin-left: 10px;
+  transform: rotate(90deg);
+}
+
+.dumper .val {
+  word-break: break-all;
+}
+
+.dumper .row.tru > *,
+.dumper .row.fal > *,
+.dumper .row.int > *,
+.dumper .row.dbl > *,
+.dumper .row.flt > *,
+.dumper .row.str > * {
+  vertical-align: top;
+  display: inline-block;
+}
+/*
+.dumper .arr > .key,
+.dumper .arr > .val,
+.dumper .obj > .key,
+.dumper .obj > .val {
+  display: block;
+}*/
+
+.dumper-console {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 40px;
+}

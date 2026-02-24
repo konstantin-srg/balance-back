@@ -1,0 +1,28 @@
+{
+  "config": {
+    "platform": {
+      "php": "8.4"
+    },
+    "preferred-install": "dist",
+    "disable-tls": true,
+    "secure-http": false
+  },
+  "autoload": {
+    "psr-4": {
+      "Pipe\\": "library/Pipe/"
+    }
+  },
+  "require": {
+    "php": ">=8.4",
+    "laminas/laminas-paginator": "2.*",
+    "filp/whoops": "*",
+    "ext-apcu": "*",
+    "ext-xhprof": "*",
+    "guzzlehttp/guzzle": "^7.0",
+    "phpoffice/phpspreadsheet": "^1.17",
+    "ne0h12/social-auther": "dev-master",
+    "ext-curl": "*",
+    "ext-pgsql": "*",
+    "ext-pdo": "*"
+  }
+}

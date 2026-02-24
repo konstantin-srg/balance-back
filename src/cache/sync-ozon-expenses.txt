@@ -1,0 +1,1 @@
+a:2:{s:4:"data";a:3:{s:45:"MarketplaceRedistributionOfAcquiringOperation";d:-2052.6800000000035;s:19:"OperationItemReturn";d:-1965.7299999999993;s:26:"ClientReturnAgentOperation";d:-497.6;}s:6:"expire";b:0;}
