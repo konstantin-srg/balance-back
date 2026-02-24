@@ -57,7 +57,6 @@ class CatalogController extends AController {
 
     $dm->get('product');
 
-    dd();
     return ['catalog' => 'list'];
   }
 }
