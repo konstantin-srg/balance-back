@@ -14,23 +14,6 @@ class TestController extends AController {
     $options = array(
       'key'		=>	'value',
     );
-
-    /*$ch = curl_init('http://pipeline/test/get');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $options);
-    $result = curl_exec($ch);
-    curl_close($ch);
-    dd($result);
-    $result = explode("\n", $result);
-
-    if ($params) {
-      $postParams['json'] = $params;
-    }
-
-    $response = $client->post($url, $postParams);
-
-    return Json::decode($response->getBody()->getContents(), 1);*/
   }
 
   public function list()
