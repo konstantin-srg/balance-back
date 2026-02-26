@@ -1,6 +1,6 @@
 services:
   nginx:
-    container_name: back
+    container_name: nginx
     image: nginx:alpine
     volumes:
       - ./../src:/var/www/backend
