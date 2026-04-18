@@ -20,7 +20,7 @@ class OzonProductsSku extends DModel
 				'active'     => 'bool',
 			],
 			'bonds' => [
-				'ozon' => [
+				'ozon_products' => [
 					'class'     => OzonProducts::class,
 					'bond'      => ['oz_prod_id' => 'id'],
 					'type'      => 'oto',

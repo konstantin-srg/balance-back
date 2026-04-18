@@ -5,6 +5,7 @@ use Balance\Model\Flow;
 use Catalog\Model\Brands;
 use Catalog\Model\Products;
 use JetBrains\PhpStorm\ArrayShape;
+use Ozon\Model\OzonApi;
 use Ozon\Model\OzonClusters;
 use Ozon\Model\OzonProducts;
 use Ozon\Model\OzonProductsSku;
@@ -15,6 +16,34 @@ use Pipe\Mvc\Service\AService;
 use Pipe\Ozon\Ozon;
 
 class OzonSyncService extends AService {
+	protected $accounts = [
+		'Account 1' => '9ad5d33e-10e2-465d-a732-84d9c6fc7183',
+		'Account 2' => '92db79ef-3150-44dd-ae19-ec5832c00f1b',
+	];
+
+	public function test()
+	{
+		$stageKey = 'sync-ozon-test-stage';
+
+		$stage = $this->cache()->get($stageKey) ?? ['account' => 1, 'step' => 1];
+
+		
+
+		$this->cache()->set($stageKey, ['account' => 1, 'step' => 1]);
+
+		dd($lastStep);
+
+		$result = $options['page'] == 1 ? [] : ($this->cache()->get($cacheKey) ?: []);
+
+
+
+
+		return [
+			'processed' => 1,
+			'resolve'   => false,
+		];
+	}
+
 	public function updateOzonOrders($options)
 	{
 		$skuMdl = OzonProductsSku::list(['sku', 'oz_prod_id']);
@@ -217,11 +246,13 @@ class OzonSyncService extends AService {
 	}
 
 
-	public function updateProducts()
+	public function updateProducts($options = [])
 	{
+		$ozon = $this->ozon($options['ozonApiId']);
+
 		$data = [];
-		$loadProducts = function ($type) use (&$data) {
-			$resp = $this->ozon()->send('v3/product/list', [
+		$loadProducts = function ($type) use (&$data, &$ozon) {
+			$resp = $ozon->send('v3/product/list', [
 				'filter' => [
 					'visibility' => $type
 				],
@@ -251,7 +282,7 @@ class OzonSyncService extends AService {
 
 		$ozonIds = array_keys($data);
 		array_walk($ozonIds, function (&$value) { $value = (string) $value; });
-		$resp = $this->ozon()->send('v3/product/info/list', [
+		$resp = $ozon->send('v3/product/info/list', [
 			'product_id' => $ozonIds
 		]);
 
@@ -271,7 +302,8 @@ class OzonSyncService extends AService {
 			compare: function ($model, $row) {
 				return $model->barcode == $row['create']['barcode'];
 			},
-			data: $data
+			data: $data,
+			delete: false
 		)->save();
 
 		return [
@@ -280,13 +312,15 @@ class OzonSyncService extends AService {
 		];
 	}
 
-	public function updateOzonProducts()
+	public function updateOzonProducts($options = [])
 	{
+		$ozonApiId = $options['ozonApiId'];
+		$ozon = $this->ozon($ozonApiId);
 		$products = Products::list(['barcode']);
 
 		$data = [];
-		$loadProducts = function ($type) use (&$data, &$products) {
-			$resp = $this->ozon()->send('v3/product/list', [
+		$loadProducts = function ($type) use (&$data, &$products, &$ozonApiId, $ozon) {
+			$resp = $ozon->send('v3/product/list', [
 				'filter' => [
 					'visibility' => $type
 				],
@@ -294,7 +328,6 @@ class OzonSyncService extends AService {
 			]);
 
 			foreach ($resp['result']['items'] as $item) {
-
 				if(!($product = $products->pipe()->find(['barcode' => $item['offer_id']])->one())) {
 					throw new \Exception('Can`t find product with barcode : ' . $item['offer_id']);
 				}
@@ -306,8 +339,9 @@ class OzonSyncService extends AService {
 						'product_id'   => $product->id(),
 						'active'       => false,
 					],
-					'update' =>[
+					'update' => [
 						'archived'    => !$item['archived'],
+						'ozon_api_id' => $ozonApiId,
 					],
 				];
 			}
@@ -321,21 +355,26 @@ class OzonSyncService extends AService {
 			compare: function ($model, $row) {
 				return $model->ozon_id == $row['create']['ozon_id'];
 			},
-			data: $data
+			data: $data,
+			delete: false
 		)->save();
 
-		return count($data);
+		return $this->response([
+			'processed' => count($data),
+		]);
 	}
 
-	public function updateOzonSku()
+	public function updateOzonSku($options)
 	{
+		$ozon = $this->ozon($options['ozonApiId']);
+
 		$ozProducts = OzonProducts::list(['ozon_id']);
 		$ozonIds = [];
 		foreach ($ozProducts as $ozProduct) {
 			$ozonIds[] = $ozProduct->ozon_id;
 		}
 
-		$resp = $this->ozon()->send('v3/product/info/list', [
+		$resp = $ozon->send('v3/product/info/list', [
 			'product_id' => $ozonIds
 		]);
 
@@ -362,6 +401,10 @@ class OzonSyncService extends AService {
 			update: false,
 			delete: false
 		)->save();
+
+		return $this->response([
+			'processed' => count($data),
+		]);
 	}
 
 	public function updateExpenses(#[ArrayShape(['page' => 'int', 'date' => \DateTime::class])] $options = [])
@@ -458,7 +501,6 @@ class OzonSyncService extends AService {
 			return $this->response([
 				'info'      => ["Ожидание Ozon API {$requestTime->get()} сек (" . (round($requestTime->get() / $totalTime->get(), 2) * 100) . "%)"],
 				'processed' => $operations,
-				'continue'  => true,
 			]);
 		}
 
@@ -499,12 +541,15 @@ class OzonSyncService extends AService {
 		]);
 	}
 
-	public function updateOzonStatistic()
+	public function updateOzonStock($options = [])
 	{
+		$ozon = $this->ozon($options['ozonApiId']);
 		$ozClusters = OzonClusters::list(['ozon_id']);
 		$ozProducts = OzonProducts::list(['offer_id']);
 
-		$skus = OzonProductsSku::list(['sku'], ['active' => 1]);
+		$skus = OzonProductsSku::list(['sku']/*, ['t.active' => 1],*/);
+		$skus->join(bond: 'ozon_products', where: ['ozon_api_id' => $options['ozonApiId']]);
+
 		//dd($skus);
 		$skuList = [];
 		foreach ($skus as $sku) {
@@ -565,7 +610,7 @@ class OzonSyncService extends AService {
 		$limit = 90;
 
 		for($i = 0; $i < ceil(count($skuList) / $limit); $i++) {
-			$resp = $this->ozon()->send('v1/analytics/stocks', [
+			$resp = $ozon->send('v1/analytics/stocks', [
 				'skus' => array_slice($skuList, ($i*$limit), (($i+1)*$limit))
 			]);
 
@@ -597,7 +642,7 @@ class OzonSyncService extends AService {
 				$data[$cpId] = ['create' => [
 					'cluster_id'  => $cluster->id(),
 					'oz_prod_id'  => $ozProduct->id(),
-					'avg_sales'   => $ozonStock['ads_cluster'] ?? 0,
+					'avg_sales'   => $ozonStock['ads_cluster'] ? round($ozonStock['ads_cluster'], 2) : 0,
 					'quantity'    => 0,
 				]];
 			}
@@ -629,10 +674,18 @@ class OzonSyncService extends AService {
 			$operations++;
 		}
 
-		OzonStock::truncate();
+
+//		OzonStock::truncate();
+
 		$ozProdSku = OzonStock::list(['oz_prod_id', 'cluster_id']);
+		$ozProdSku->join('ozon_product', where: ['ozon_api_id' => $options['ozonApiId']]);
 		$ozProdSku->fullUpdate(
-			compare: false,
+//			compare: false,
+			compare: function ($model, $row) {
+				return
+					$model->cluster_id == $row['create']['cluster_id'] &&
+					$model->oz_prod_id == $row['create']['oz_prod_id'];
+			},
 			data: $data,
 		)->save();
 
@@ -644,15 +697,16 @@ class OzonSyncService extends AService {
 			data: $delivering,
 		)->save();
 
-		return [
+		return $this->response([
 			'processed' => $operations,
-			'resolve'   => true,
-		];
+		]);
 	}
 
 	public function updateOzonClusters($options = [])
 	{
-		$resp = $this->ozon()->send('v1/cluster/list', ['cluster_type' => 'CLUSTER_TYPE_CIS']);
+		$ozon = $this->ozon($options['ozonApiId']);
+
+		$resp = $ozon->send('v1/cluster/list', ['cluster_type' => 'CLUSTER_TYPE_CIS']);
 		foreach ($resp['clusters'] as $cluster) {
 			$data[] = ['create' => [
 				'ozon_id'  => $cluster['id'],
@@ -660,7 +714,7 @@ class OzonSyncService extends AService {
 				'russia'   => false,
 			]];
 		}
-		$resp = $this->ozon()->send('v1/cluster/list', ['cluster_type' => 'CLUSTER_TYPE_OZON']);
+		$resp = $ozon->send('v1/cluster/list', ['cluster_type' => 'CLUSTER_TYPE_OZON']);
 		foreach ($resp['clusters'] as $cluster) {
 			$data[] = ['create' => [
 				'ozon_id'  => $cluster['id'],
@@ -679,14 +733,16 @@ class OzonSyncService extends AService {
 			delete: false
 		)->save();
 
+
 		return [
 			'processed' => count($data),
 			'resolve'   => true,
 		];
 	}
 
-	protected function response(#[ArrayShape(['processed' => 'int', 'status' => 'string', 'continue' => 'bool',
-		'info' => 'array', 'warnings' => 'array', 'errors' => 'array'])] $resp)
+	protected function response(#[ArrayShape([
+		'processed' => 'int', 'status' => 'string', 'continue' => 'bool',
+		'info' => 'array', 'warnings' => 'array', 'errors' => 'array', 'resolve' => 'boolean'])] $resp)
 	{
 		return array_merge([
 			'processed' => 0,
@@ -694,7 +750,7 @@ class OzonSyncService extends AService {
 			'warnings'  => [],
 			'errors'    => [],
 			'info'      => [],
-			'resolve'   => false,
+			'resolve'   => true,
 		], $resp);
 	}
 
@@ -704,11 +760,21 @@ class OzonSyncService extends AService {
 	}
 
 
-	/**
-	 * @return Ozon
-	 */
-	protected function ozon()
+
+	protected $ozonClient = [];
+	protected function ozon($ozonApiId): Ozon
 	{
-		return $this->sm()->ozon();
+		if($this->ozonClient[$ozonApiId]) {
+			return $this->ozonClient[$ozonApiId];
+		}
+
+		if(!($ozonApi = OzonApi::findById($ozonApiId))) {
+			throw new \Exception('OZON API not found');
+		}
+
+		return $this->ozonClient[$ozonApiId] = new Ozon([
+			'login'    => $ozonApi->key,
+			'password' => $ozonApi->pass,
+		]);
 	}
 }

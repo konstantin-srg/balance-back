@@ -3,19 +3,22 @@ namespace Ozon\Controller;
 
 use Catalog\Model\Products;
 use Ozon\Model\OzonClusters;
-use Ozon\Model\OzonProducts;
 use Ozon\Model\OzonStock;
 use Ozon\Service\OzonSyncService;
-use Pipe\Debug\Timer;
+use Ozon\Model\OzonApi;
 use Pipe\DModel\DBAdapter\Sql\Skip;
 use Pipe\DModel\DBAdapter\Sql\Where;
-use Pipe\DModeler\DModel\Containers\DateTime;
 use Pipe\Mvc\Controller\AController;
 
 /**
  * @method OzonSyncService service()
  */
 class OzonController extends AController {
+
+	public function getAccountsList()
+	{
+		return OzonApi::list(['id', 'name']);
+	}
 	public function getStock()
 	{
 		$data = [];
@@ -59,7 +62,7 @@ class OzonController extends AController {
 			'active'   => 1,
 		]);
 		$list->select()->order(['sort' => 'desc']);
-		$list->join('ozon');
+		$list->join('ozon', [], ['ozon_api_id' => $params['api']]);
 
 		$data = [];
 		foreach ($list as $item) {

@@ -1,6 +1,7 @@
 <?php
 namespace Ozon\Controller;
 
+use Ozon\Model\OzonApi;
 use Ozon\Model\OzonSync;
 use Ozon\Model\Test;
 use Ozon\Service\OzonSyncService;
@@ -44,13 +45,18 @@ class OzonSyncController extends AController {
 			'expire'  => 20*60,
 		],
 		'ozonProducts' => [
-			'name' => 'Обновление информации о товарах Ozon',
-			'func'    => 'updateProducts',
+			'name' => 'Соединение товаров с Ozon',
+			'func'    => 'updateOzonProducts',
+			'expire'  => 20*60,
+		],
+		'updateOzonSku' => [
+			'name' => 'Обновление SKU товаров',
+			'func'    => 'updateOzonSku',
 			'expire'  => 20*60,
 		],
 		'stock'    => [
-			'name' => 'Обновление статистики Ozon',
-			'func'    => 'updateOzonStatistic',
+			'name' => 'Обновление остатков на складах',
+			'func'    => 'updateOzonStock',
 			'expire'  => 20*60,
 		],
 		'statistic'    => [
@@ -86,24 +92,31 @@ class OzonSyncController extends AController {
 			case 'stock':
 				$map[] = $maps['clusters'];
 				$map[] = $maps['products'];
-				$map[] = $maps['stock'];
-				//$map[] = $maps['expenses'];
-				/*$map[] = $maps['products'];
 				$map[] = $maps['ozonProducts'];
-				$map[] = $maps['stock'];*/
+				$map[] = $maps['updateOzonSku'];
+				$map[] = $maps['stock'];
 				break;
 			default:
 				return $this->response(['errors' => ["Unknown sync map type '{$this->params('map')}'"], 'status' =>  'success']);
 		}
 
+		$ozonAcc = OzonApi::findById($this->params('api'));
+
+		if(!$this->params('api') || !($ozonAcc = OzonApi::findById($this->params('api')))) {
+			return $this->response(['status' =>  'fail', 'info' => ['Неизвестный аккаунт Ozon']]);
+		}
+
 		//sleep(1);
-		return $this->response(['result' => $map, 'status' =>  'success']);
+		return $this->response(['result' => $map, 'status' =>  'success', 'info' => ['Обновление аккаута ozon: ' . $ozonAcc->name]]);
 	}
 
 	public function sync()
 	{
 		$mapName = $this->params('map');
 		$page = $this->params(key: 'page',default: 1);
+
+//		$result = $this->syncService()->test();
+//		return $this->response(['status' =>  'fail']);
 
 		try {
 			$date = new \DateTime($this->params('date'));
@@ -116,15 +129,15 @@ class OzonSyncController extends AController {
 			if($map = $this->maps[$mapName]) {
 				$sync = OzonSync::findOrCreate([], ['key' => 'ozon_sync_' . $mapName]);
 
-				if(!$sync->isExpired($map['expire'])) {
-					return [
+				/*if(!$sync->isExpired($map['expire'])) {
+					return $this->response([
 						'warning'   => sprintf('С прошлого успешного обновления не прошло %s мин', $map['expire'] / 60),
 						'status'    => 'fresh',
-					];
-				}
+					]);
+				}*/
 
 				$func = $map['func'];
-				$result = $this->syncService()->$func(['page' => $page, 'date' => $date]);
+				$result = $this->syncService()->$func(['ozonApiId' => $this->params('api'), 'page' => $page, 'date' => $date]);
 
 				if($result['resolve']) {
 					$sync->set('sync', 'now')->save();

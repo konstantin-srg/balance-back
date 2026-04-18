@@ -42,15 +42,21 @@ class DModel implements \Iterator
 	////////////////////////////////////////////////////
 	//STATIC
 	////////////////////////////////////////////////////
+	///
+	///
+	static public function findById(string | int $id, array | string $fields = [], callable | string $check = null): static | bool
+	{
+		return self::find($fields, ['id' => $id], $check);
+	}
 
 	static public function find(array | string $fields = [], string | int | array $filters = [], callable | string $check = null): static | bool
 	{
 		$model = (new static());
 
-		if($filters['id']) {
+		/*if($filters['id']) {
 			$model->id($filters['id']);
 			unset($filters['id']);
-		}
+		}*/
 
 		$model->select()->columns($fields)->where($filters);
 
@@ -131,7 +137,7 @@ class DModel implements \Iterator
 	 * @return $this|false
 	 * @throws \Exception
 	 */
-	protected function load(array | string $fields = [], array | callable $filters = [])
+	public function load(array | string $fields = [], array | callable $filters = [])
 	{
 		if($this->id || $this->loaded) {
 			return $this;

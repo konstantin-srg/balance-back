@@ -7,4 +7,5 @@ return [
 	'/ozon/sync'        => [OzonSyncController::class, 'sync'],
 	'/ozon/sync/map'    => [OzonSyncController::class, 'map'],
 	'/ozon/stock/table' => [OzonController::class, 'getStockTable'],
+	'/ozon/accounts/list' => [OzonController::class, 'getAccountsList'],
 ];

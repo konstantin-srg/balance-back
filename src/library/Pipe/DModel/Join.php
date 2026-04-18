@@ -20,6 +20,11 @@ class Join
 		$this->select = $select;
 	}
 
+	public function select()
+	{
+		return $this->select;
+	}
+
 	public function up()
 	{
 		array_pop($this->path);
@@ -35,7 +40,7 @@ class Join
 		return $this;
 	}
 
-	public function join($bond, $fields = [], $sum = false)
+	public function join($bond, $fields = [], $where = [], $sum = false)
 	{
 		$parent = end($this->path);
 
@@ -72,7 +77,11 @@ class Join
 			$main = $this->path[count($this->path) - 1]['alias'];
 		}
 
-		$this->select->join([$bond => ($config['class'])::table()], sprintf('%s.%s = %s.%s', $main, key($config['bond']), $bond, current($config['bond'])), $cols);
+		foreach ($where as $expression => $val) {
+			$this->select->where([$tblAlias . "." . $expression => $val]);
+		}
+
+		$this->select->join([$bond => ($config['class'])::table()], sprintf('`%s`.`%s` = `%s`.`%s`', $main, key($config['bond']), $bond, current($config['bond'])), $cols);
 
 		return $this;
 	}

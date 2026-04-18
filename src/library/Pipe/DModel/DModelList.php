@@ -25,10 +25,10 @@ class DModelList implements \Iterator
 		$this->prototype = $prototype;
 	}
 
-	public function join($bond, $fields = [])
+	public function join($bond, $fields = [], $where = [])
 	{
 		$join = new Join(get_class($this->prototype), $this->select());
-		$join->join($bond, $fields);
+		$join->join(bond: $bond, fields: $fields, where: $where);
 
 		return $join;
 

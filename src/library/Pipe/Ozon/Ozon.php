@@ -9,17 +9,15 @@ class Ozon
 {
 	protected string $login = '';
 	protected string $password = '';
-	protected string $server = '';
 	protected array $cash = [];
 
 	public function __construct($options)
 	{
 		$this->login = $options['login'];
 		$this->password = $options['password'];
-		$this->server = $options['server'];
 	}
 
-	public function send($path, $params = null, $limit = null)
+	public function send($path, $params = null)
 	{
 		$cashKey = md5($path . ' => ' . serialize($params));
 
@@ -34,7 +32,7 @@ class Ozon
 		$postParams = [
 			'headers' => [
 				'Client-Id' => $this->login,
-				'Api-Key' => $this->password,
+				'Api-Key'   => $this->password,
 				'Content-Type' => 'application/json',
 			],
 		];

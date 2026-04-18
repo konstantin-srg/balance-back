@@ -1,6 +1,7 @@
 <?php
 namespace Ozon\Model;
 
+use Catalog\Model\Products;
 use Pipe\DModel\DModel;
 
 /**
@@ -20,6 +21,14 @@ class OzonStock extends DModel
 				'cluster_id'    => [],
 				'quantity'      => [],
 				'avg_sales'     => [],
+			],
+			'bonds' => [
+				'ozon_product' => [
+					'class'     => OzonProducts::class,
+					'bond'      => ['oz_prod_id' => 'id'],
+					'type'      => 'oto',
+					'onDelete'  => null
+				],
 			],
 		];
 	}

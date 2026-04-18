@@ -11,6 +11,8 @@ use Pipe\DModel\DModelList;
  * @property string $name
  * @property integer $barcode
  * @property integer $ozon_id
+ * @property integer $product_id
+ * @property integer $ozon_account_id
  * @property integer $brand_id
  * @property integer $tag_id
  * @property Json $sku
@@ -30,6 +32,7 @@ class OzonProducts extends DModel
 			'properties' => [
 				'ozon_id'    => 'int',
 				'product_id' => 'int',
+				'ozon_api_id'=> 'int',
 				'offer_id'   => 'int',
 				'active'     => 'bool',
 				'archived'   => 'bool',

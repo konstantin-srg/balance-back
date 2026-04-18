@@ -35,9 +35,10 @@ class AbstractQuery
 
 			if(!str_contains($expression, ' ')) {
 				if(str_contains($expression, '.')) {
-					$expression = sprintf('`%s` = ?', $expression);
+					list($expTbl, $expFld) = (explode('.', $expression));
+					$expression = sprintf('`%s`.`%s` = ?', $expTbl, $expFld);
 				} else {
-					$expression = sprintf('`%s`.`%s` = ?', key($this->table), $expression);
+					$expression = sprintf('`t`.`%s` = ?', $expression);
 				}
 			}
 
