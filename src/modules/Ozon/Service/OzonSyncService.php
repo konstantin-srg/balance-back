@@ -543,6 +543,7 @@ class OzonSyncService extends AService {
 
 	public function updateOzonStock($options = [])
 	{
+		//$ozon = $this->ozon(1);
 		$ozon = $this->ozon($options['ozonApiId']);
 		$ozClusters = OzonClusters::list(['ozon_id']);
 		$ozProducts = OzonProducts::list(['offer_id']);
@@ -550,72 +551,33 @@ class OzonSyncService extends AService {
 		$skus = OzonProductsSku::list(['sku']/*, ['t.active' => 1],*/);
 		$skus->join(bond: 'ozon_products', where: ['ozon_api_id' => $options['ozonApiId']]);
 
-		//dd($skus);
 		$skuList = [];
 		foreach ($skus as $sku) {
 			$skuList[] = $sku->sku;
 		}
 
-//		if(count($skuList) > 100) {
-//			throw new \Exception("Too much skus to update (" . count($skuList) . ")");
-//		}
-
 		$operations = 0;
 		$page = 0;
 		$delivering = [];
-		/*do {
-			$resp = $this->ozon()->send('v2/posting/fbo/list', [
-				'filter' => [
-					'status' => 'delivering',
-				],
-				'offset' => $page * 1000,
-				'limit' => 1000
-			]);
 
-			foreach ($resp['result'] as $orders) {
-				foreach ($orders['products'] as $item) {
-					if(!isset($delivering[$item['offer_id']])) {
-						$ozProduct = $ozProducts->pipe()->find(['offer_id' => $item['offer_id']])->one();
-						if(!$ozProduct) {
-							throw new \Exception('Can`t find product:  ' . $item['name']);
-						}
-
-						$delivering[$item['offer_id']] = ['create' => [
-							'oz_prod_id'  => $ozProduct->id(),
-						], 'update' => [
-							'stock'  => 0,
-							'sales'  => 0,
-						]];
-					}
-
-					$delivering[$item['offer_id']]['update']['stock'] += $item['quantity'];
-					$operations++;
-				}
-			}
-			$page++;
-		} while(!empty($resp['result']) && $page <= 5);/*
-
-		//dd($delivering);
-		/*$resp = $this->ozon()->send('v1/returns/list', [
-			'filters' => [
-				'visual_status_name' => ['MovingToOzon']
-			],
-			'limit' => 500
-		]);
-		dd($resp);*/
-
-		//https://api-seller.ozon.ru/v2/posting/fbo/list
+		//dd($skuList);
 
 		$result = [];
 		$limit = 90;
 
+		/*dd($ozon->send('v1/analytics/stocks', [
+			'skus' => ['228082858']
+		]));*/
+
+		//$skuList = ['228082858'];
+		//dd(ceil(count($skuList) / $limit));
+
 		for($i = 0; $i < ceil(count($skuList) / $limit); $i++) {
 			$resp = $ozon->send('v1/analytics/stocks', [
-				'skus' => array_slice($skuList, ($i*$limit), (($i+1)*$limit))
+				'skus' => array_slice($skuList, ($i * $limit), (($i + 1) * $limit))
 			]);
 
 			$result = array_merge($result, $resp['items']);
-
 		}
 
 		$data = [];
@@ -639,12 +601,15 @@ class OzonSyncService extends AService {
 			}
 
 			if(!isset($data[$cpId])) {
-				$data[$cpId] = ['create' => [
-					'cluster_id'  => $cluster->id(),
-					'oz_prod_id'  => $ozProduct->id(),
-					'avg_sales'   => $ozonStock['ads_cluster'] ? round($ozonStock['ads_cluster'], 2) : 0,
-					'quantity'    => 0,
-				]];
+				$data[$cpId] = [
+					'create' => [
+						'cluster_id'  => $cluster->id(),
+						'oz_prod_id'  => $ozProduct->id(),
+					],
+					'update' => [
+						'quantity'    => 0,
+						'avg_sales'   => $ozonStock['ads_cluster'] ? round($ozonStock['ads_cluster'], 2) : 0,
+					]];
 			}
 
 			$quantity =
@@ -652,7 +617,7 @@ class OzonSyncService extends AService {
 				$ozonStock['other_stock_count'] + // Количество единиц товара, проходящих проверку.
 				$ozonStock['transit_stock_count']; //Количество единиц товара в поставках в пути.
 
-			$data[$cpId]['create']['quantity'] += $quantity; //Количество единиц товара в поставках в пути.
+			$data[$cpId]['update']['quantity'] += $quantity; //Количество единиц товара в поставках в пути.
 
 			if(!isset($delivering[$ozonStock['offer_id']])) {
 				$ozProduct = $ozProducts->pipe()->find(['offer_id' => $ozonStock['offer_id']])->one();
@@ -666,14 +631,11 @@ class OzonSyncService extends AService {
 				]];
 			}
 
-			//$delivering[$ozonStock['offer_id']]['create']['name'] = $ozonStock['name'];
-
 			$delivering[$ozonStock['offer_id']]['update']['stock'] += $quantity;
 			$delivering[$ozonStock['offer_id']]['update']['sales'] = $ozonStock['ads'] * 30.4;
 
 			$operations++;
 		}
-
 
 //		OzonStock::truncate();
 
@@ -689,13 +651,13 @@ class OzonSyncService extends AService {
 			data: $data,
 		)->save();
 
-		$statistic = OzonStatistic::list(['oz_prod_id', 'stock']);
+		/*$statistic = OzonStatistic::list(['oz_prod_id', 'stock']);
 		$statistic->fullUpdate(
 			compare: function ($model, $row) {
 				return $model->oz_prod_id == $row['create']['oz_prod_id'];
 			},
 			data: $delivering,
-		)->save();
+		)->save();*/
 
 		return $this->response([
 			'processed' => $operations,
@@ -732,7 +694,6 @@ class OzonSyncService extends AService {
 			update: false,
 			delete: false
 		)->save();
-
 
 		return [
 			'processed' => count($data),

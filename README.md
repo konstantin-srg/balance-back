@@ -10,4 +10,8 @@ Push
 powershell ./deploy/push.sh
 ```
 
-
+```
+Deploy
+sh deploy-front.sh
+sh deploy-back.sh
+```
